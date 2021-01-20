@@ -88,6 +88,15 @@ func (h *ServiceClient) GetStats(name string, reset bool) (string, int64) {
 	return sresp.Stat.Name, sresp.Stat.Value
 }
 
+func (h *ServiceClient) GetSysStats() {
+	resp, err := h.statClient.GetSysStats(context.Background(), &statscmd.SysStatsRequest{})
+	if err != nil {
+		log.Printf("%v", err)
+	} else {
+		log.Printf("%v", resp)
+	}
+}
+
 // AddUser ...
 //   Add a user to an inbound on the fly. The effect is not permentnent.
 func (h *ServiceClient) AddUser(inboundTag string, email string, level uint32, uuid string, alterID uint32) {
