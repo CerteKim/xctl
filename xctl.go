@@ -54,23 +54,21 @@ func NewServiceClient(addr string, port uint32) *ServiceClient {
 
 //QueryStats ...
 // List all stats from v2ray. users didn't generate any traffic won't included.
-func (h *ServiceClient) QueryStats(pattern string, reset bool) map[string]int64 {
+func (h *ServiceClient) QueryStats(pattern string, reset bool) string {
 	sresp, err := h.statClient.QueryStats(context.Background(), &statscmd.QueryStatsRequest{
 		Pattern: pattern,
 		Reset_:  reset,
 	})
-
-	result := make(map[string]int64)
 	if err != nil {
 		log.Printf("failed to call grpc command: %v", err)
-	} else {
-		// log.Printf("%v", sresp)
-		for _, stat := range sresp.Stat {
-			result[stat.Name] = stat.Value
-		}
 	}
 
-	return result
+	ret, err := json.Marshal(sresp)
+	if err != nil {
+		log.Printf("failed to convert json: %v", err)
+	}
+
+	return string(ret)
 }
 
 //GetStats ...
