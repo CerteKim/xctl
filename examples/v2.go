@@ -3,12 +3,12 @@ package main
 import (
 	"fmt"
 
-	v2ctl ".."
+	xctl ".."
 )
 
 func main() {
 
-	c := v2ctl.NewServiceClient("127.0.0.1", 10085)
+	c := xctl.NewServiceClient("127.0.0.1", 10085)
 	fmt.Println("--------------------------------------------")
 	ret := c.QueryStats("rand", false)
 	for key, val := range ret {

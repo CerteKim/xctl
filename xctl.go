@@ -1,17 +1,19 @@
-package v2ctlmin
+package xctl
 
 import (
 	"context"
 	"fmt"
 	"log"
 
+	logcmd "github.com/xtls/xray-core/app/log/command"
+	proxymancmd "github.com/xtls/xray-core/app/proxyman/command"
+	statscmd "github.com/xtls/xray-core/app/stats/command"
+	"github.com/xtls/xray-core/common/protocol"
+	"github.com/xtls/xray-core/common/serial"
+	"github.com/xtls/xray-core/common/uuid"
+	"github.com/xtls/xray-core/core"
+	"github.com/xtls/xray-core/proxy/vmess"
 	"google.golang.org/grpc"
-	proxymancmd "v2ray.com/core/app/proxyman/command"
-	statscmd "v2ray.com/core/app/stats/command"
-	"v2ray.com/core/common/protocol"
-	"v2ray.com/core/common/serial"
-	"v2ray.com/core/common/uuid"
-	"v2ray.com/core/proxy/vmess"
 )
 
 //GenerateUUID ...
@@ -29,6 +31,7 @@ type ServiceClient struct {
 	APIPort     uint32
 	statClient  statscmd.StatsServiceClient
 	proxyClient proxymancmd.HandlerServiceClient
+	logClient   logcmd.LoggerServiceClient
 }
 
 // NewServiceClient ...
@@ -43,6 +46,7 @@ func NewServiceClient(addr string, port uint32) *ServiceClient {
 	svr := ServiceClient{APIAddress: addr, APIPort: port,
 		statClient:  statscmd.NewStatsServiceClient(cmdConn),
 		proxyClient: proxymancmd.NewHandlerServiceClient(cmdConn),
+		logClient:   logcmd.NewLoggerServiceClient(cmdConn),
 	}
 	return &svr
 }
@@ -119,6 +123,61 @@ func (h *ServiceClient) RemoveUser(inboundTag string, email string) {
 		}),
 	})
 
+	if err != nil {
+		log.Printf("%v", err)
+	} else {
+		log.Printf("%v", resp)
+	}
+}
+
+// RestartLogger
+// IDK if it will work :D
+func (h *ServiceClient) RestartLogger() {
+	resp, err := h.logClient.RestartLogger(context.Background(), &logcmd.RestartLoggerRequest{})
+	if err != nil {
+		log.Printf("%v", err)
+	} else {
+		log.Printf("%v", resp)
+	}
+}
+
+func (h *ServiceClient) adi(in *core.InboundHandlerConfig) {
+	resp, err := h.proxyClient.AddInbound(context.Background(), &proxymancmd.AddInboundRequest{
+		Inbound: in,
+	})
+	if err != nil {
+		log.Printf("%v", err)
+	} else {
+		log.Printf("%v", resp)
+	}
+}
+
+func (h *ServiceClient) ado(out *core.OutboundHandlerConfig) {
+	resp, err := h.proxyClient.AddOutbound(context.Background(), &proxymancmd.AddOutboundRequest{
+		Outbound: out,
+	})
+	if err != nil {
+		log.Printf("%v", err)
+	} else {
+		log.Printf("%v", resp)
+	}
+}
+
+func (h *ServiceClient) rmi(tag string) {
+	resp, err := h.proxyClient.RemoveInbound(context.Background(), &proxymancmd.RemoveInboundRequest{
+		Tag: tag,
+	})
+	if err != nil {
+		log.Printf("%v", err)
+	} else {
+		log.Printf("%v", resp)
+	}
+}
+
+func (h *ServiceClient) rmp(tag string) {
+	resp, err := h.proxyClient.RemoveOutbound(context.Background(), &proxymancmd.RemoveOutboundRequest{
+		Tag: tag,
+	})
 	if err != nil {
 		log.Printf("%v", err)
 	} else {
