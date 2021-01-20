@@ -2,6 +2,7 @@ package xctl
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -88,13 +89,19 @@ func (h *ServiceClient) GetStats(name string, reset bool) (string, int64) {
 	return sresp.Stat.Name, sresp.Stat.Value
 }
 
-func (h *ServiceClient) GetSysStats() {
+func (h *ServiceClient) GetSysStats() string {
 	resp, err := h.statClient.GetSysStats(context.Background(), &statscmd.SysStatsRequest{})
 	if err != nil {
 		log.Printf("%v", err)
 	} else {
 		log.Printf("%v", resp)
 	}
+
+	ret, err := json.Marshal(resp)
+	if err != nil {
+		log.Printf("%v", err)
+	}
+	return string(ret)
 }
 
 // AddUser ...
